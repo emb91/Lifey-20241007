@@ -12,11 +12,11 @@
   }
   
   .popup {
-    background: white; /* White background for the popup */
+    background-color: white; /* White background for the popup */
     padding: 20px; /* Padding inside the popup */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    border-radius: 5px; /* Rounded corners */
     text-align: center; /* Center text inside the popup */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
   }
   
   .popupHeading {
@@ -39,4 +39,21 @@
   
   .popupButton:hover {
     background-color: #0056b3; /* Darker blue on hover */
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top of other elements */
+  }
+  
+  .popup button {
+    margin-top: 10px;
   }

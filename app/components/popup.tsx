@@ -18,8 +18,9 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, message }) => {
         <p>{message}</p>
         <Link href="/get-tasks">
          <button type="button">See your tasks</button>
+         <p>or</p>
         </Link>
-        <button onClick={onClose}>Close</button>
+        <button onClick={onClose}>Create a new task</button>
       </div>
     </div>
   );

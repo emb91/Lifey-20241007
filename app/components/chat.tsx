@@ -87,6 +87,7 @@ const Chat = ({
   const [error, setError] = useState("");
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   // Ref for handling intiial message sent
   const initialMessageSent = useRef(false);
@@ -177,26 +178,25 @@ const Chat = ({
 
       console.log(`[Action Response] Status: ${response.status}`);
 
+      if (response.status === 200) {
+        setPopupMessage("Task created successfully!");
+        setIsPopupOpen(true);
+      }
+
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error}`);
       }
 
       const result = await response.json();
       console.log("Action result:", result);
 
-      if (result.status === 'completed') {
-        handleRunCompleted(result);
-      } else {
-        console.log("Run not completed. Current status:", result.status);
-        // Implement additional logic here to handle non-completed runs if needed
-      }
+      handleRunCompleted(result);
 
     } catch (error) {
       console.error("Error in submitActionResult:", error);
       setError(`An error occurred: ${error.message}`);
-      // Consider implementing a retry mechanism here
-      // For now, we'll still call handleRunCompleted to unblock the UI
+      // We'll still call handleRunCompleted to unblock the UI
       handleRunCompleted();
     }
   };
@@ -273,7 +273,6 @@ const Chat = ({
   const handleRunCompleted = (result?: any) => {
     setInputDisabled(false);
     console.log("Run completed:", result);
-
     // Add any additional logic you need here
   };
 
@@ -338,8 +337,12 @@ const Chat = ({
       })
       return [...prevMessages.slice(0, -1), updatedLastMessage];
     });
-    
   }
+
+  // Function to close the popup
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
 
   // Render the chat interface
   return (
@@ -366,7 +369,7 @@ const Chat = ({
           className={styles.input}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Enter your question"
+          placeholder={`Hey ${user.firstName}, give me a task!`}
         />
         <button
           type="submit"
@@ -376,6 +379,11 @@ const Chat = ({
           Send
         </button>
       </form>
+      <Popup
+        isOpen={isPopupOpen}
+        onClose={closePopup}
+        message={popupMessage}
+      />
     </div>
   );
 };
