@@ -1,0 +1,42 @@
+.popupOverlay {
+    position: fixed; /* Position the overlay to cover the entire viewport */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    display: flex; /* Use flexbox to center the popup */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    z-index: 1000; /* Ensure it appears above other content */
+  }
+  
+  .popup {
+    background: white; /* White background for the popup */
+    padding: 20px; /* Padding inside the popup */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    text-align: center; /* Center text inside the popup */
+  }
+  
+  .popupHeading {
+    margin: 0 0 10px; /* Margin for the heading */
+  }
+  
+  .popupParagraph {
+    margin: 0 0 20px; /* Margin for the paragraph */
+  }
+  
+  .popupButton {
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white; /* White text color */
+    border: none; /* No border */
+    padding: 10px 15px; /* Padding for the button */
+    border-radius: 5px; /* Rounded corners for the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+  }
+  
+  .popupButton:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+  }
