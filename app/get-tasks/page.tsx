@@ -78,7 +78,7 @@ export default function Home() {
         <button type="button">Go Home</button>
       </Link>
       <Link href="/create-task">
-        <button type="button">Give Lifey a task</button>
+        <button type="button">Create a new task</button>
       </Link>
 
       {loading && <p>Loading...</p>}
