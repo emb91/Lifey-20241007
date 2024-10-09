@@ -7,14 +7,14 @@ import {
   SignInButton,
   SignedIn,
   SignedOut,
-  UserButton
+  UserButton, 
 } from '@clerk/nextjs';
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Assistants API Quickstart",
-  description: "A quickstart template using the Assistants API with OpenAI",
+  title: "Hey Lifey App",
+  description: "Hey Lifey App for setting your life on easy mode",
   icons: {
     icon: "/openai.svg",
   },
@@ -22,6 +22,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
+  
     <ClerkProvider>
       <html lang="en">
         <body className={inter.className}>

@@ -9,6 +9,7 @@ import { useSession, useUser } from '@clerk/nextjs'
 import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import Link from "next/link";
+import { createClerkSupabaseClient } from '../utils/createClerkSupabaseClient';
 
 const ChatPage = () => {
 
@@ -27,33 +28,34 @@ const updateRunId = (newRunId: string) => {
 const { user } = useUser()
 // The `useSession()` hook will be used to get the Clerk session object
 const { session } = useSession()
+const supabase = createClerkSupabaseClient(session);
 
-function createClerkSupabaseClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: {
-        // Get the custom Supabase token from Clerk
-        fetch: async (url, options = {}) => {
-          const clerkToken = await session?.getToken({
-            template: 'supabase',
-          });
+// function createClerkSupabaseClient() {
+//   return createClient(
+//     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+//     {
+//       global: {
+//         // Get the custom Supabase token from Clerk
+//         fetch: async (url, options = {}) => {
+//           const clerkToken = await session?.getToken({
+//             template: 'supabase',
+//           });
 
-          // Insert the Clerk Supabase token into the headers
-          const headers = new Headers(options?.headers);
-          headers.set('Authorization', `Bearer ${clerkToken}`);
+//           // Insert the Clerk Supabase token into the headers
+//           const headers = new Headers(options?.headers);
+//           headers.set('Authorization', `Bearer ${clerkToken}`);
 
-          // Now call the default fetch
-          return fetch(url, {
-            ...options,
-            headers,
-          });
-        },
-      },
-    }
-  );
-}
+//           // Now call the default fetch
+//           return fetch(url, {
+//             ...options,
+//             headers,
+//           });
+//         },
+//       },
+//     }
+//   );
+// }
 
 useEffect(() => {
     if (!user) return
@@ -67,7 +69,7 @@ useEffect(() => {
     let output = "";
     
     // Create a `client` object for accessing Supabase data using the Clerk token
-    const supabase = createClerkSupabaseClient() 
+    // const supabase = createClerkSupabaseClient() 
 
     if (toolCall.function.name === "create-task") {
       try {

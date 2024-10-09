@@ -3,10 +3,18 @@
 
 import styles from "./shared/page.module.css";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 
 
 const HomePage = () => {
+  const { user } = useUser();
+
+  // Log the Clerk user details
+  if (user) {
+    console.log("Clerk user details:", user);
+  }
+
   return (
     <main>
       <div>
