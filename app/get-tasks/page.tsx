@@ -72,7 +72,10 @@ export default function Home() {
 
   async function deleteTask(taskId: number) {
     console.log("Deleting taskId:", taskId);
-    const { data, error } = await supabase.from('taskTest').delete().eq('id', taskId)
+    const { data, error } = await supabase
+    .from('taskTest')
+    .delete()
+    .eq('id', taskId)
     console.log("data:", data);
     console.log("error:", error);
   }
