@@ -27,7 +27,7 @@ export default function Home() {
   //         fetch: async (url, options = {}) => {
   //           const clerkToken = await session?.getToken({
   //             template: 'supabase',
-  //           });
+  //           });s
 
   //           // Insert the Clerk Supabase token into the headers
   //           const headers = new Headers(options?.headers);

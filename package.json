@@ -9,7 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@brianmmdev/clerk-webhooks-handler": "^1.0.5",
     "@clerk/nextjs": "^5.7.1",
+    "@heroicons/react": "^2.1.5",
+    "@stripe/react-stripe-js": "^2.8.1",
+    "@stripe/stripe-js": "^4.8.0",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.4",
     "ai": "^3.4.4",
@@ -20,6 +24,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^9.0.1",
+    "stripe": "^17.2.0",
     "svix": "^1.37.0"
   },
   "devDependencies": {
