@@ -191,7 +191,7 @@ function SignUpForm({ setVerifying }: Props) {
   }
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
       <Card className="w-full sm:w-96">
         <CardHeader>
           <CardTitle>Create your account</CardTitle>
