@@ -1,3 +1,4 @@
+'use client'
 
 import * as React from 'react'
 import { useSignUp } from '@clerk/nextjs'
@@ -15,7 +16,7 @@ import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
 import { useState } from 'react'
 
-function VerificationForm() {
+export default function VerificationForm() {
   const { isLoaded, signUp, setActive } = useSignUp()
   const [code, setCode] = useState('')
   const router = useRouter()
@@ -76,5 +77,3 @@ function VerificationForm() {
     </div>
   )
 }
-
-export default VerificationForm

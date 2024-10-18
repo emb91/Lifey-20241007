@@ -8,6 +8,7 @@ import {
   SignedIn,
   SignedOut,
   UserButton, 
+  RedirectToSignUp
 } from '@clerk/nextjs';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -27,12 +28,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <html lang="en">
         <body className={inter.className}>
           <SignedOut>
-            <SignInButton />
+            <RedirectToSignUp />
           </SignedOut>
           <SignedIn>
             <UserButton />
-            {assistantId ? children : <Warnings />}
           </SignedIn>
+            {assistantId ? children : <Warnings />}
           <img className="logo" src="/openai.svg" alt="OpenAI Logo" />
         </body>
       </html>

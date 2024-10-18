@@ -1,5 +1,3 @@
-// components/ui/radio-group.tsx
-
 import React, { createContext, useContext, forwardRef } from 'react';
 
 interface RadioGroupContextType {
