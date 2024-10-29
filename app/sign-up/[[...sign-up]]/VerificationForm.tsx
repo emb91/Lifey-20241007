@@ -47,7 +47,7 @@ export default function VerificationForm() {
       if (signInAttempt.status === 'complete') {
         console.log('Verification complete, setting active session...');
         await setActive({ session: signInAttempt.createdSessionId })
-        router.push('/after-sign-up')
+        router.push('/subscribe')
       } else {
         // 👉 If the status is not complete. User may need to complete further steps.
         console.log('Verification incomplete:', signInAttempt.status);
@@ -102,7 +102,6 @@ export default function VerificationForm() {
     </div>
   )
 }
-
 // 👉 new code = edits after this 20241028
 
 // export default VerificationForm
@@ -185,3 +184,4 @@ export default function VerificationForm() {
 // }
 
 // export default VerificationForm
+

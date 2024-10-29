@@ -46,7 +46,6 @@ export default function AfterSignUp() {
     </div>
   )
 }
-
 // newer code
 //'use client'
 
@@ -63,31 +62,20 @@ export default function AfterSignUp() {
 
 // function AfterSignUp() {
 //   const router = useRouter()
-//   const { user, isLoaded } = useUser()
+//   const { user } = useUser()
 
+//   // 👉 Poll the user data until a stripeSubscriptionId is available
 //   useEffect(() => {
-//     let attempts = 0
-//     const maxAttempts = 5
-
 //     async function init() {
-//       try {
-//         while (!user?.publicMetadata?.stripeSubscriptionId && attempts < maxAttempts) {
-//           await sleep(2000)
-//           await user?.reload()
-//           attempts++
-//         }
-//         // Redirect to dashboard regardless of subscription status after max attempts
-//         router.push('/dashboard')
-//       } catch (error) {
-//         console.error('Error in AfterSignUp:', error)
-//         router.push('/dashboard')
+//       while (!user?.publicMetadata?.stripeSubscriptionId) {
+//         await sleep(2000)
+//         await user?.reload()
 //       }
+//       // 👉 Once available, redirect to /dashboard
+//       router.push('/dashboard')
 //     }
-
-//     if (isLoaded && user) {
-//       init()
-//     }
-//   }, [user, router, isLoaded])
+//     init()
+//   }, [])
 
 //   return (
 //     <div className="mt-20 flex items-center justify-center">
@@ -115,31 +103,20 @@ export default function AfterSignUp() {
 
 // function AfterSignUp() {
 //   const router = useRouter()
-//   const { user, isLoaded } = useUser()
+//   const { user } = useUser()
 
+//   // 👉 Poll the user data until a stripeSubscriptionId is available
 //   useEffect(() => {
-//     let attempts = 0
-//     const maxAttempts = 5
-
 //     async function init() {
-//       try {
-//         while (!user?.publicMetadata?.stripeSubscriptionId && attempts < maxAttempts) {
-//           await sleep(2000)
-//           await user?.reload()
-//           attempts++
-//         }
-//         // Redirect to dashboard regardless of subscription status after max attempts
-//         router.push('/dashboard')
-//       } catch (error) {
-//         console.error('Error in AfterSignUp:', error)
-//         router.push('/dashboard')
+//       while (!user?.publicMetadata?.stripeSubscriptionId) {
+//         await sleep(2000)
+//         await user?.reload()
 //       }
+//       // 👉 Once available, redirect to /dashboard
+//       router.push('/dashboard')
 //     }
-
-//     if (isLoaded && user) {
-//       init()
-//     }
-//   }, [user, router, isLoaded])
+//     init()
+//   }, [])
 
 //   return (
 //     <div className="mt-20 flex items-center justify-center">
@@ -149,3 +126,4 @@ export default function AfterSignUp() {
 // }
 
 // export default AfterSignUp
+
