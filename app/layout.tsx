@@ -10,7 +10,7 @@ import {
   UserButton, 
   RedirectToSignUp
 } from '@clerk/nextjs';
-
+import Link from 'next/link';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </SignedOut>
           <SignedIn>
             <UserButton />
+          <Link href="https://billing.stripe.com/p/login/test_aEUeXGaiZ4AZ60U4gg">Billing</Link>
           </SignedIn>
             {assistantId ? children : <Warnings />}
           <img className="logo" src="/openai.svg" alt="OpenAI Logo" />
