@@ -7,6 +7,8 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import VerificationForm from './VerificationForm'
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
+
 export default function Page() {
   const [verifying, setVerifying] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
@@ -16,7 +18,6 @@ export default function Page() {
       theme: 'stripe',
     },
   }
-  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string)
 
   // Render the verification form when email has been verified
   if (verifying) {
@@ -35,6 +36,9 @@ export default function Page() {
     </div>
   )
 }
+
+
+
 
 // // newer version
 // 'use client'

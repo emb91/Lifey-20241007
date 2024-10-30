@@ -191,6 +191,8 @@ export async function POST(req: Request) {
         user_lastname: evt.data.last_name,
         user_email: evt.data.email_addresses[0].email_address,
         last_updated: lastUpdated,
+        stripe_customer_id: evt.data.public_metadata?.stripeCustomerId,
+        stripe_subscription_id: evt.data.public_metadata?.stripeSubscriptionId
       })
       .eq('user_id', evt.data.id)
 
@@ -202,21 +204,87 @@ export async function POST(req: Request) {
   }
 
   // Handle user deletion event
-  if (evt.type === 'user.deleted') {
-    console.log('user deleted:', evt.data.id)
-    const supabase = createWebhookSupabaseClient()
-    
-    const { data, error } = await supabase
-      .from('users')
-      .delete()
-      .eq('user_id', evt.data.id)
 
-    if (error) {
-      console.error('Error deleting user:', error.message, error.details)
-    } else {
-      console.log('User deleted:', data)
+  if (evt.type === 'user.deleted') {
+    console.log('event', evt);
+    
+    console.log('user deleted:', evt.data.id);
+    const supabase = createWebhookSupabaseClient();
+
+    try {
+      // Get the user's Stripe customer ID from supabase before deleting
+      const { data: stripeCustomerId, error: supabaseError } = await supabase
+        .from('users')
+        .select('stripe_customer_id')
+        .eq('user_id', evt.data.id)
+        .single()
+      
+      console.log('Stripe Customer ID:', stripeCustomerId);
+
+      // First delete from Stripe if customer ID exists
+      if (stripeCustomerId) {
+        try {
+          await stripe.customers.del(stripeCustomerId.stripe_customer_id as string);
+          console.log('Successfully deleted Stripe customer:', stripeCustomerId);
+        } catch (stripeError) {
+          console.error('Error deleting Stripe customer:', stripeError);
+          // Continue with Supabase deletion even if Stripe fails
+        }
+      } else {
+        console.warn('No Stripe Customer ID found for user:', evt.data.id);
+      }
+
+      // Then delete from Supabase
+      const { data, error } = await supabase
+        .from('users')
+        .delete()
+        .eq('user_id', evt.data.id);
+
+      if (error) {
+        console.error('Error deleting user from Supabase:', error.message, error.details);
+        throw error;
+      }
+
+      console.log('Successfully deleted user from Supabase:', evt.data.id);
+    } catch (error) {
+      console.error('Error in deletion process:', error);
+      throw error;
     }
   }
+
+
+
+  // if (evt.type === 'user.deleted') {
+  //   console.log('user deleted:', evt.data.id)
+  //   const supabase = createWebhookSupabaseClient()
+    
+  //   try {
+  //     // Get the user's Stripe customer ID from their metadata before deleting
+  //     const stripeCustomerId = evt.data.public_metadata?.stripeCustomerId
+  
+  //     // delete from supabase
+  //   const { data, error } = await supabase
+  //     .from('users')
+  //     .delete()
+  //     .eq('user_id', evt.data.id)
+
+  //   if (error) {
+  //     console.error('Error deleting user from Supabase:', error.message, error.details)
+  //   } else {
+  //     console.log('User deleted from Supabase:', data)
+  //   }
+
+  //   // delete from stripe if Stripe customer ID exists
+  //   if (stripeCustomerId) {
+  //     await stripe.customers.del(stripeCustomerId as string)
+  //     console.log('User deleted from Stripe:', stripeCustomerId)
+  //   }
+  //   console.log('user deleted from clerk', data)
+  //   } catch (error) {
+  //   console.error('Error in deletion process:', error)
+  //     throw error
+  //   }
+  // }
 
   // Log the webhook details
   const { id } = evt.data
@@ -227,7 +295,6 @@ export async function POST(req: Request) {
   // Return a 200 status code to acknowledge receipt of the webhook
   return new Response('', { status: 200 })
 }
-
 // code works - does not include stripe
 // import { Webhook } from 'svix'
 // import { headers } from 'next/headers'
@@ -356,3 +423,4 @@ export async function POST(req: Request) {
 
 //   return new Response('', { status: 200 })
 // }
+
