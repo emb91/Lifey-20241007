@@ -369,7 +369,7 @@ const Chat = ({
           className={styles.input}
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder={`Hey ${user.firstName}, give me a task!`}
+          placeholder={`Hey ${user?.firstName ? user.firstName : 'there'}, give me a task!`}
         />
         <button
           type="submit"

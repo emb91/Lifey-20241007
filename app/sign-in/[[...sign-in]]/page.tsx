@@ -1,5 +1,12 @@
-import { SignIn } from '@clerk/nextjs'
+'use client'
+
+import * as React from 'react'
+import SignInForm from './SignInForm'
 
 export default function Page() {
-  return <SignIn />
+  return (
+    <div className="mt-20 flex items-center justify-center">
+      <SignInForm />
+    </div>
+  )
 }
