@@ -6,7 +6,11 @@ import { AssistantStream } from "openai/lib/AssistantStream";
 import Markdown from "react-markdown";
 import { AssistantStreamEvent } from "openai/resources/beta/assistants";
 import { RequiredActionFunctionToolCall } from "openai/resources/beta/threads/runs/runs";
-import Popup from "./popup";
+import TaskSuccessPopup from "./TaskSuccessPopup";
+import RegenerateButton from './RegenerateButton';
+import LoadingSpinner from './LoadingSpinner';
+
+
 
 // Defines the structure for message props
 type MessageProps = {
@@ -87,7 +91,8 @@ const Chat = ({
   const [error, setError] = useState("");
   const [isTaskCompleted, setIsTaskCompleted] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [popupMessage, setPopupMessage] = useState("");
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   // Ref for handling intiial message sent
   const initialMessageSent = useRef(false);
@@ -179,7 +184,6 @@ const Chat = ({
       console.log(`[Action Response] Status: ${response.status}`);
 
       if (response.status === 200) {
-        setPopupMessage("Task created successfully!");
         setIsPopupOpen(true);
       }
 
@@ -196,7 +200,6 @@ const Chat = ({
     } catch (error) {
       console.error("Error in submitActionResult:", error);
       setError(`An error occurred: ${error.message}`);
-      // We'll still call handleRunCompleted to unblock the UI
       handleRunCompleted();
     }
   };
@@ -258,15 +261,25 @@ const Chat = ({
     const newRunId = event.data.id;
     console.log("New Run ID:", newRunId);
     setRunId(newRunId);
-    const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
-    const toolCallOutputs = await Promise.all(
-      toolCalls.map(async (toolCall) => {
-        const result = await functionCallHandler(toolCall);
-        return { output: result, tool_call_id: toolCall.id };
-      })
-    );
-    setInputDisabled(true);
-    submitActionResult(newRunId, toolCallOutputs);
+    
+    setIsCreatingTask(true); // Show spinner EARLIER in the process
+    
+    try {
+      const toolCalls = event.data.required_action.submit_tool_outputs.tool_calls;
+      const toolCallOutputs = await Promise.all(
+        toolCalls.map(async (toolCall) => {
+          const result = await functionCallHandler(toolCall);
+          return { output: result, tool_call_id: toolCall.id };
+        })
+      );
+      setInputDisabled(true);
+      await submitActionResult(newRunId, toolCallOutputs);
+    } catch (error) {
+      console.error("Error in handleRequiresAction:", error);
+      setError("Failed to create task. Please try again.");
+    } finally {
+      setIsCreatingTask(false); // Hide spinner when everything is done
+    }
   };
 
   // Function to handle run completion event
@@ -344,6 +357,36 @@ const Chat = ({
     setIsPopupOpen(false);
   };
 
+  const handleRegenerate = async () => {
+    if (messages.length < 2) return;
+
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find(msg => msg.role === "user")?.text;
+
+    if (!lastUserMessage) return;
+
+    setIsRegenerating(true);
+    setInputDisabled(true); // Ensure input is disabled during regeneration
+    
+    try {
+      // Remove the last assistant message
+      setMessages(prevMessages => prevMessages.slice(0, -1));
+      
+      // Resend the last user message
+      await sendMessage(lastUserMessage);
+    } catch (error) {
+      console.error("Error regenerating response:", error);
+      setError("Failed to regenerate response. Please try again.");
+      setInputDisabled(false); // Re-enable input if there's an error
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  // Calculate when to show the regenerate button
+  const showRegenerateButton = messages.length >= 2; // Show whenever there's a conversation
+
   // Render the chat interface
   return (
     <div className={styles.chatContainer}>
@@ -353,13 +396,24 @@ const Chat = ({
         </div>
       }
       {initialMessageSent.current && messages.length >= 2 &&
-      <div className={styles.messages}>
-        {messages.map((msg, index) => (
-          <Message key={index} role={msg.role} text={msg.text} />
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+        <div className={styles.messages}>
+          {messages.map((msg, index) => (
+            <Message key={index} role={msg.role} text={msg.text} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       }
+      
+      {isCreatingTask && (
+        <LoadingSpinner message="Lifey is creating the task for you now..." />
+      )}
+
+      <RegenerateButton 
+        onRegenerate={handleRegenerate}
+        isRegenerating={isRegenerating}
+        showButton={showRegenerateButton}
+      />
+
       <form
         onSubmit={handleSubmit}
         className={`${styles.inputForm} ${styles.clearfix}`}
@@ -379,10 +433,9 @@ const Chat = ({
           Send
         </button>
       </form>
-      <Popup
+      <TaskSuccessPopup
         isOpen={isPopupOpen}
         onClose={closePopup}
-        message={popupMessage}
       />
     </div>
   );
