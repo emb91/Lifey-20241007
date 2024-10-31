@@ -9,6 +9,7 @@ import { RequiredActionFunctionToolCall } from "openai/resources/beta/threads/ru
 import TaskSuccessPopup from "./TaskSuccessPopup";
 import RegenerateButton from './RegenerateButton';
 import LoadingSpinner from './LoadingSpinner';
+import { Button } from './ui/Button';
 
 
 
@@ -229,6 +230,19 @@ const Chat = ({
   const handleTextDelta = (delta) => {
     if (delta.value != null) {
       appendToLastMessage(delta.value);
+      
+      // Debug logs
+      console.log('Disabling regenerate button');
+      
+      if (regenerateTimerRef.current) {
+        clearTimeout(regenerateTimerRef.current);
+      }
+      setRegenerateEnabled(false);
+      
+      regenerateTimerRef.current = setTimeout(() => {
+        console.log('Enabling regenerate button after 15s');
+        setRegenerateEnabled(true);
+      }, 15000);
     };
     if (delta.annotations != null) {
       annotateLastMessage(delta.annotations);
@@ -385,7 +399,20 @@ const Chat = ({
   };
 
   // Calculate when to show the regenerate button
-  const showRegenerateButton = messages.length >= 2; // Show whenever there's a conversation
+  const showRegenerateButton = messages.length >= 4; // Show whenever there's a conversation
+
+  // Add new state for regenerate button timer
+  const [regenerateEnabled, setRegenerateEnabled] = useState(false);
+  const regenerateTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (regenerateTimerRef.current) {
+        clearTimeout(regenerateTimerRef.current);
+      }
+    };
+  }, []);
 
   // Render the chat interface
   return (
@@ -408,12 +435,6 @@ const Chat = ({
         <LoadingSpinner message="Lifey is creating the task for you now..." />
       )}
 
-      <RegenerateButton 
-        onRegenerate={handleRegenerate}
-        isRegenerating={isRegenerating}
-        showButton={showRegenerateButton}
-      />
-
       <form
         onSubmit={handleSubmit}
         className={`${styles.inputForm} ${styles.clearfix}`}
@@ -425,13 +446,21 @@ const Chat = ({
           onChange={(e) => setUserInput(e.target.value)}
           placeholder={`Hey ${user?.firstName ? user.firstName : 'there'}, give me a task!`}
         />
-        <button
-          type="submit"
-          className={styles.button}
-          disabled={inputDisabled}
-        >
-          Send
-        </button>
+        <div className={styles.buttonGroup}>
+          
+          <Button
+            type="submit"
+            disabled={inputDisabled}
+          >
+            Send
+          </Button>
+          <RegenerateButton 
+            onRegenerate={handleRegenerate}
+            isRegenerating={isRegenerating}
+            showButton={true}
+            disabled={!regenerateEnabled || isRegenerating || messages.length < 4}
+          />
+        </div>
       </form>
       <TaskSuccessPopup
         isOpen={isPopupOpen}

@@ -2,6 +2,7 @@ import React from 'react';
 import styles from '../shared/popup.module.css'; 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Button } from './ui/Button';
 
 type TaskSuccessPopupProps = {
   isOpen: boolean;
@@ -21,18 +22,23 @@ const TaskSuccessPopup: React.FC<TaskSuccessPopupProps> = ({ isOpen }) => {
   return (
     <div className={styles.overlay}>
       <div className={styles.popup}>
-        <h2>Notification</h2>
-        <p>Task created successfully!</p>
-        <Link href="/get-tasks">
-          <button type="button">See your tasks</button>
-          <p>or</p>
+        <h2>Task created successfully!</h2>
+        <Link 
+          href="/get-tasks"
+        >
+          <Button 
+            type="button"
+          >
+            See your tasks
+          </Button>
         </Link>
-        <button 
+        <p>or</p>
+        <Button 
           onClick={handleNewTask} 
           type="button"
         >
           Create a new task
-        </button>
+        </Button>
       </div>
     </div>
   );

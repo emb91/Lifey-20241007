@@ -1,6 +1,6 @@
 'use client'
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/app/components/ui/Button'
 import { useUser } from '@clerk/nextjs'
 import {
   Card,

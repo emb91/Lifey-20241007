@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useSignUp } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/app/components/ui/button'
+import { Button } from '@/app/components/ui/Button'
 import {
   Card,
   CardContent,

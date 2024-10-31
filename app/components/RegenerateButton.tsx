@@ -1,29 +1,25 @@
 import React from 'react';
-import styles from "../shared/chat.module.css";
+import { Button } from './ui/Button';
 
 interface RegenerateButtonProps {
   onRegenerate: () => void;
   isRegenerating: boolean;
   showButton: boolean;
+  disabled: boolean;
 }
 
 const RegenerateButton: React.FC<RegenerateButtonProps> = ({ 
   onRegenerate, 
   isRegenerating, 
-  showButton 
+  disabled 
 }) => {
-  if (!showButton) return null;
-
   return (
-    <div className={styles.regenerateContainer}>
-      <button
-        onClick={onRegenerate}
-        disabled={isRegenerating}
-        className={styles.regenerateButton}
-      >
-        {isRegenerating ? "Regenerating..." : "Regenerate response"}
-      </button>
-    </div>
+    <Button
+      onClick={onRegenerate}
+      disabled={disabled}
+    >
+      {isRegenerating ? "Regenerating..." : "Regenerate"}
+    </Button>
   );
 };
 

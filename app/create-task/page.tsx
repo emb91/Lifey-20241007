@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import axios from 'axios';
 import Link from "next/link";
 import { createClerkSupabaseClient } from '../utils/createClerkSupabaseClient';
+import { Button } from '../components/ui/Button';
 
 const ChatPage = () => {
 
@@ -163,12 +164,14 @@ useEffect(() => {
       <div className={styles.container}>
         <div className={styles.chatContainer}>
           <h1>Give Lifey a task</h1>
-          <Link href="/">
-            <button type="button">Go Home</button>
-          </Link>
-          <Link href="/get-tasks">
-            <button type="button">See your tasks</button>
-          </Link>
+          <div className={styles.buttonGroup}>
+            <Link href="/">
+              <Button>Go Home</Button>
+            </Link>
+            <Link href="/get-tasks">
+              <Button>See your tasks</Button>
+            </Link>
+          </div>
           <div className={styles.chat}>
             <Chat 
             user={user} 
