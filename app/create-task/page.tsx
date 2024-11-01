@@ -29,6 +29,16 @@ const updateRunId = (newRunId: string) => {
 const { user } = useUser()
 // The `useSession()` hook will be used to get the Clerk session object
 const { session } = useSession()
+
+// Add session debugging
+useEffect(() => {
+  console.log('Create Task - Session state:', {
+    exists: !!session,
+    session: session,
+    sessionId: session?.id
+  });
+}, [session]);
+
 const supabase = createClerkSupabaseClient(session);
 
 // function createClerkSupabaseClient() {

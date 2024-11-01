@@ -12,6 +12,9 @@ export function createClerkSupabaseClient(session: Session | null) {
             template: 'supabase',
           });
 
+          console.log('Clerk token:', clerkToken); // Add this line
+
+
           const headers = new Headers(options?.headers);
           headers.set('Authorization', `Bearer ${clerkToken}`);
 
