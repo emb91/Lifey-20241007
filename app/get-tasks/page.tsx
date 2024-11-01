@@ -63,8 +63,6 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
   .eq('id', taskId)
 }
 
-
-
   // Render the tasks
   return (
     <div>
@@ -131,6 +129,7 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
           <>
             <h2>{task.task_name}</h2>
             <p>{task.task_description}</p>
+            <p>Status: {task.task_status || 'No status'}</p>
             <Button 
               onClick={() => {
                 setCurrentEditingTaskId(task.id);

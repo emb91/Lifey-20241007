@@ -4,7 +4,7 @@
 import styles from "./shared/page.module.css";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-
+import { Button } from "./components/ui/Button";
 
 
 const HomePage = () => {
@@ -25,10 +25,18 @@ const HomePage = () => {
       <div>
         <div >
         <Link href="/create-task">
-          <button type="button">Give Lifey a task</button>
+          <Button 
+          type="button"
+          >
+            Give Lifey a task
+          </Button>
           </Link>
           <Link href="/get-tasks">
-          <button type="button">See your tasks</button>
+          <Button 
+          type="button"
+          >
+            See your tasks
+          </Button>
           </Link>
           <div>
           </div>
@@ -39,7 +47,6 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
 
 // import React from "react";
 // import styles from "./shared/page.module.css";
@@ -123,3 +130,4 @@ export default HomePage;
 // };
 
 // export default ChatPage;
+
