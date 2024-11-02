@@ -33,7 +33,7 @@ export default function Home() {
     async function loadTasks() {
       setLoading(true)
       const { data, error } = await supabase
-      .from('taskTest')
+      .from('tasks')
       .select()
       .order('created_at', { ascending: false })
       console.log(data);
@@ -48,7 +48,7 @@ export default function Home() {
   async function deleteTask(taskId: number) {
     console.log("Deleting taskId:", taskId);
     const { data, error } = await supabase
-      .from('taskTest')
+      .from('tasks')
       .delete()
       .eq('id', taskId);
 
@@ -64,7 +64,7 @@ export default function Home() {
 async function editTask(taskId: number, taskName: string, taskDescription: string, additionalInformation: string) {
   console.log("Editing taskId:", taskId);
   const { data, error } = await supabase
-    .from('taskTest')
+    .from('tasks')
     .update({ task_name: taskName, task_description: taskDescription, additional_information: additionalInformation })
     .eq('id', taskId)
 }

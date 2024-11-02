@@ -48,7 +48,7 @@ export function FileUpload({
       for (let i = 0; i < selectedFiles.length; i++) {
         const file = selectedFiles[i]
         const fileExt = file.name.split('.').pop()
-        const filePath = `user-documents/${session.user.id}/${Math.random()}.${fileExt}`
+        const filePath = `additional-files/${session.user.id}/${Math.random()}.${fileExt}`
 
         const { error: uploadError } = await supabase.storage
           .from(bucketName)

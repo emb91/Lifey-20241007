@@ -95,7 +95,7 @@ useEffect(() => {
 
         // Use Supabase client to create the task
         const { data, error } = await supabase
-          .from('taskTest')
+          .from('tasks')
           .insert(taskData)
           .select()
           .single();
