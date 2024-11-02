@@ -15,6 +15,7 @@ export default function Home() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [currentEditingTaskId, setCurrentEditingTaskId] = useState<number | null>(null);
+  const [editAdditionalInfo, setEditAdditionalInfo] = useState("");
   // The `useUser()` hook will be used to ensure that Clerk has loaded data about the logged in user
   const { user } = useUser();
   // The `useSession()` hook will be used to get the Clerk session object
@@ -47,20 +48,25 @@ export default function Home() {
   async function deleteTask(taskId: number) {
     console.log("Deleting taskId:", taskId);
     const { data, error } = await supabase
-    .from('taskTest')
-    .delete()
-    .eq('id', taskId)
-    console.log("data:", data);
-    console.log("error:", error);
+      .from('taskTest')
+      .delete()
+      .eq('id', taskId);
+
+    if (!error) {
+      // Update the tasks state to remove the deleted task
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+    } else {
+      console.log("error:", error);
+    }
   }
 
 // edit a task
-async function editTask(taskId: number, taskName: string, taskDescription: string) {
+async function editTask(taskId: number, taskName: string, taskDescription: string, additionalInformation: string) {
   console.log("Editing taskId:", taskId);
   const { data, error } = await supabase
-  .from('taskTest')
-  .update({ task_name: taskName, task_description: taskDescription })
-  .eq('id', taskId)
+    .from('taskTest')
+    .update({ task_name: taskName, task_description: taskDescription, additional_information: additionalInformation })
+    .eq('id', taskId)
 }
 
   // Render the tasks
@@ -69,7 +75,7 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
       <h1>Tasks</h1>
       <Link href="/">
         <Button 
-        type="button"
+      ype="button"
         >
           Go Home
         </Button>
@@ -103,10 +109,17 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
               className="px-4 py-2 border rounded-full mb-2 w-full"
               placeholder="Task description"
             />
+            <input
+              type="text"
+              value={editAdditionalInfo}
+              onChange={(e) => setEditAdditionalInfo(e.target.value)}
+              className="px-4 py-2 border rounded-full mb-2 w-full"
+              placeholder="Additional Information"
+            />
             <div className="flex gap-2">
               <Button 
                 onClick={() => {
-                  editTask(task.id, editName, editDescription);
+                  editTask(task.id, editName, editDescription, editAdditionalInfo);
                   setCurrentEditingTaskId(null);
                   window.location.reload();
                 }}
@@ -118,6 +131,7 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
                   setCurrentEditingTaskId(null);
                   setEditName("");
                   setEditDescription("");
+                  setEditAdditionalInfo("");
                 }}
               >
                 Cancel
@@ -129,12 +143,14 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
           <>
             <h2>{task.task_name}</h2>
             <p>{task.task_description}</p>
+            <p>Additional Information: {task.additional_information || 'No additional information'}</p>
             <p>Status: {task.task_status || 'No status'}</p>
             <Button 
               onClick={() => {
                 setCurrentEditingTaskId(task.id);
                 setEditName(task.task_name);
                 setEditDescription(task.task_description);
+                setEditAdditionalInfo(task.additional_information || "");
               }}
             >
               Edit task
@@ -142,7 +158,6 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
             <Button  
               onClick={() => {
                 deleteTask(task.id);
-                window.location.reload();
               }}
             >
               Delete task
