@@ -75,7 +75,7 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
       <h1>Tasks</h1>
       <Link href="/">
         <Button 
-      ype="button"
+      type="button"
         >
           Go Home
         </Button>

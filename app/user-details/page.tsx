@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
 import { Button } from '@/app/components/ui/Button'
-import { FileUpload, FileInfo } from '@/app/components/fileUpload'
+import { FileUpload, FileInfo } from '@/app/components/additionalFileUpload'
 
 
 interface UserInfo {
@@ -85,7 +85,7 @@ export default function UserDetailsPage() {
     try {
       // Insert file references into the database
       const { error } = await supabase
-        .from('files')
+        .from('additionalFiles')
         .insert(
           files.map(file => ({
             user_id: user?.id,
