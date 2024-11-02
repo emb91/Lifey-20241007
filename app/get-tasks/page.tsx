@@ -6,6 +6,7 @@ import { log } from 'console'
 import Link from 'next/link';
 import { createClerkSupabaseClient } from '../utils/createClerkSupabaseClient';
 import { Button } from '../components/ui/Button';
+import { TaskFileUpload, FileInfo } from '@/app/components/taskFileUpload'
 
 
 export default function Home() {
@@ -22,6 +23,26 @@ export default function Home() {
   const { session } = useSession();
   const supabase = createClerkSupabaseClient(session);
 
+  const handleTaskFileUpload = async (files: FileInfo[], taskId: number, supabaseClient: any) => {
+    try {
+      const { error } = await supabaseClient
+        .from('taskFiles')
+        .insert(
+          files.map(file => ({
+            user_id: user?.id,
+            task_id: taskId,
+            file_path: file.path,
+            file_name: file.name,
+            file_type: file.type
+          }))
+        )
+
+      if (error) throw error
+      console.log('Task files uploaded successfully')
+    } catch (error) {
+      console.error('Error saving file references:', error)
+    }
+  }
 
   useEffect(() => {
     if (!user) return
@@ -162,6 +183,14 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
             >
               Delete task
             </Button>
+            <div className="mt-4">
+              <h3 className="text-sm font-medium mb-2">Upload Files for this Task</h3>
+              <TaskFileUpload
+                bucketName="user-documents"
+                taskId={task.id}
+                onUpload={(files, taskId) => handleTaskFileUpload(files, taskId, supabase)}
+              />
+            </div>
           </>
         )}
       </div>
