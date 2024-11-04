@@ -8,6 +8,8 @@ import { createClerkSupabaseClient } from '../utils/createClerkSupabaseClient';
 import { Button } from '../components/ui/Button';
 import { TaskFileUpload, FileInfo } from '@/app/components/taskFileUpload'
 import { FileDisplay } from '@/app/components/FileDisplay';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
+
 
 export default function Home() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -17,16 +19,17 @@ export default function Home() {
   const [editDescription, setEditDescription] = useState("");
   const [currentEditingTaskId, setCurrentEditingTaskId] = useState<number | null>(null);
   const [editAdditionalInfo, setEditAdditionalInfo] = useState("");
-  // The `useUser()` hook will be used to ensure that Clerk has loaded data about the logged in user
   const { user } = useUser();
-  // The `useSession()` hook will be used to get the Clerk session object
   const { session } = useSession();
   const supabase = createClerkSupabaseClient(session);
+  const [isUploading, setIsUploading] = useState(false)
+
 
   const handleTaskFileUpload = async (files: FileInfo[], taskId: number, supabaseClient: any) => {
     try {
       window.console.error('1. Starting file upload, files:', files);
-      
+      setIsUploading(true);
+
       if (!files || files.length === 0) {
         throw new Error('No files provided');
       }
@@ -95,6 +98,7 @@ export default function Home() {
         taskId: taskId,
         userId: user?.id
       });
+      setIsUploading(false);
     }
   }
 
@@ -147,10 +151,14 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
   // Render the tasks
   return (
     <div>
+      {isUploading && (
+        <LoadingSpinner message="Lifey is uploading your files now..." />
+      )}
+      
       <h1>Tasks</h1>
       <Link href="/">
         <Button 
-      type="button"
+          type="button"
         >
           Go Home
         </Button>
