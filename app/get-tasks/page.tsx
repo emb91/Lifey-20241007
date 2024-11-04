@@ -224,7 +224,8 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
         ) : (
           // View mode
           <>
-            <h2>{task.task_name}</h2>
+            <h2>Task Name: {task.task_name}</h2>
+            <p>Task number: {task.id}</p>
             <p>{task.task_description}</p>
             <p>Additional Information: {task.additional_information || 'No additional information'}</p>
             <p>Status: {task.task_status || 'No status'}</p>
