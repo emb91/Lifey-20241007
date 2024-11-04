@@ -10,6 +10,7 @@ import { TaskFileUpload, FileInfo } from '@/app/components/taskFileUpload'
 import { FileDisplay } from '@/app/components/FileDisplay';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { DeleteConfirmationPopup } from '@/app/components/popups/DeleteConfirmationPopup';
+import { SaveConfirmationPopup } from '@/app/components/popups/SaveConfirmationPopup';
 
 
 export default function Home() {
@@ -29,6 +30,19 @@ export default function Home() {
     taskId: number | null;
     taskName: string;
   }>({ isOpen: false, taskId: null, taskName: '' });
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean;
+    taskId: number | null;
+    taskName: string;
+    taskDescription: string;
+    additionalInfo: string;
+  }>({ 
+    isOpen: false, 
+    taskId: null, 
+    taskName: '', 
+    taskDescription: '', 
+    additionalInfo: '' 
+  });
 
 
   const handleTaskFileUpload = async (files: FileInfo[], taskId: number, supabaseClient: any) => {
@@ -193,8 +207,17 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
   console.log("Editing taskId:", taskId);
   const { data, error } = await supabase
     .from('tasks')
-    .update({ task_name: taskName, task_description: taskDescription, additional_information: additionalInformation })
-    .eq('id', taskId)
+    .update({ 
+      task_name: taskName, 
+      task_description: taskDescription, 
+      additional_information: additionalInformation,
+      last_updated: new Date().toISOString()
+    })
+    .eq('id', taskId);
+
+  if (error) {
+    console.error("Error updating task:", error);
+  }
 }
 
   // Render the tasks
@@ -251,9 +274,13 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
             <div className="flex gap-2">
               <Button 
                 onClick={() => {
-                  editTask(task.id, editName, editDescription, editAdditionalInfo);
-                  setCurrentEditingTaskId(null);
-                  window.location.reload();
+                  setSaveConfirmation({ 
+                    isOpen: true, 
+                    taskId: task.id,
+                    taskName: editName,
+                    taskDescription: editDescription,
+                    additionalInfo: editAdditionalInfo
+                  });
                 }}
               >
                 Save
@@ -336,6 +363,37 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
         }}
         itemName={deleteConfirmation.taskName}
         itemType="task"
+      />
+
+      <SaveConfirmationPopup
+        isOpen={saveConfirmation.isOpen}
+        onClose={() => setSaveConfirmation({ 
+          isOpen: false, 
+          taskId: null, 
+          taskName: '', 
+          taskDescription: '', 
+          additionalInfo: '' 
+        })}
+        onConfirm={() => {
+          if (saveConfirmation.taskId) {
+            editTask(
+              saveConfirmation.taskId, 
+              saveConfirmation.taskName, 
+              saveConfirmation.taskDescription, 
+              saveConfirmation.additionalInfo
+            );
+            setCurrentEditingTaskId(null);
+            setSaveConfirmation({ 
+              isOpen: false, 
+              taskId: null, 
+              taskName: '', 
+              taskDescription: '', 
+              additionalInfo: '' 
+            });
+            window.location.reload();
+          }
+        }}
+        taskName={saveConfirmation.taskName}
       />
 
     </div>
