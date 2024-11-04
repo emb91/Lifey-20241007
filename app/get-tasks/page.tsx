@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { createClerkSupabaseClient } from '../utils/createClerkSupabaseClient';
 import { Button } from '../components/ui/Button';
 import { TaskFileUpload, FileInfo } from '@/app/components/taskFileUpload'
-
+import { FileDisplay } from '@/app/components/FileDisplay';
 
 export default function Home() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -25,7 +25,21 @@ export default function Home() {
 
   const handleTaskFileUpload = async (files: FileInfo[], taskId: number, supabaseClient: any) => {
     try {
-      const { error } = await supabaseClient
+      window.console.error('1. Starting file upload, files:', files);
+      
+      if (!files || files.length === 0) {
+        throw new Error('No files provided');
+      }
+
+      if (!taskId) {
+        throw new Error('No taskId provided');
+      }
+
+      if (!supabaseClient) {
+        throw new Error('No supabaseClient provided');
+      }
+
+      const { data: fileData, error: fileError } = await supabaseClient
         .from('taskFiles')
         .insert(
           files.map(file => ({
@@ -36,11 +50,51 @@ export default function Home() {
             file_type: file.type
           }))
         )
+        .select('id');
 
-      if (error) throw error
-      console.log('Task files uploaded successfully')
+      if (fileError) {
+        window.console.error('2. Error inserting files:', fileError);
+        throw fileError;
+      }
+      
+      window.console.error('3. Successfully inserted files:', fileData);
+
+      // Get current taskFiles_ID array from tasks table
+      const { data: taskData, error: taskError } = await supabaseClient
+        .from('tasks')
+        .select('taskFiles_ID')
+        .eq('id', taskId)
+        .single();
+
+      if (taskError) throw taskError
+      console.log('Task data:', taskData);
+
+      // Combine existing and new file IDs
+      const existingIds = taskData?.taskFiles_ID || [];
+      const newIds = fileData.map(file => file.id);
+      const allIds = [...existingIds, ...newIds];
+      console.log('All IDs:', allIds);
+
+      // Update the tasks table with the new array of file IDs
+      const { error: updateError } = await supabaseClient
+        .from('tasks')
+        .update({ taskFiles_ID: allIds })
+        .eq('id', taskId);
+
+      if (updateError) throw updateError
+      console.log('Task files uploaded and linked successfully');
+      
+      // Add window reload after successful upload
+      window.location.reload();
+      
     } catch (error) {
-      console.error('Error saving file references:', error)
+      console.error('Detailed error:', {
+        message: error.message,
+        error: error,
+        files: files,
+        taskId: taskId,
+        userId: user?.id
+      });
     }
   }
 
@@ -188,7 +242,17 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
               <TaskFileUpload
                 bucketName="user-documents"
                 taskId={task.id}
-                onUpload={(files, taskId) => handleTaskFileUpload(files, taskId, supabase)}
+                onUpload={(files, taskId) => {
+                  console.error('TaskFileUpload onUpload called with:', { files, taskId });
+                  return handleTaskFileUpload(files, taskId, supabase);
+                }}
+              />
+              <FileDisplay 
+                taskId={task.id}
+                fileIds={task.taskFiles_ID || []}
+                supabase={supabase}
+                tableName="taskFiles"
+                onDelete={() => window.location.reload()}
               />
             </div>
           </>

@@ -8,6 +8,7 @@ import { Input } from '@/app/components/ui/input'
 import { Label } from '@/app/components/ui/label'
 import { Button } from '@/app/components/ui/Button'
 import { FileUpload, FileInfo } from '@/app/components/additionalFileUpload'
+import { AdditionalFileDisplay } from '@/app/components/additionalFileDisplay'
 
 
 interface UserInfo {
@@ -179,13 +180,17 @@ export default function UserDetailsPage() {
             bucketName="user-documents"
             onUpload={handleUpload}
           />
+          <AdditionalFileDisplay 
+            userId={user?.id}
+            supabase={supabase}
+            tableName="additionalFiles"
+            onDelete={() => window.location.reload()}
+          />
         </CardContent>
       </Card>
     </div>
   );
 }
-
-
 // 'use client'
 
 // import { useState, useEffect } from 'react'
@@ -372,3 +377,4 @@ export default function UserDetailsPage() {
 //     </div>
 //   );
 // }
+

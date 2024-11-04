@@ -1,3 +1,5 @@
+//rr
+
 'use client'
 
 import { useState } from 'react'
@@ -39,12 +41,13 @@ export function TaskFileUpload({
 
   const handleUpload = async () => {
     if (!selectedFiles || selectedFiles.length === 0) {
-      console.error('No files selected')
+      window.console.error('No files selected')
       return
     }
 
     try {
       setUploading(true)
+      window.console.error('Starting upload process');
       const uploadedFiles: FileInfo[] = []
 
       for (let i = 0; i < selectedFiles.length; i++) {
@@ -52,6 +55,7 @@ export function TaskFileUpload({
         const fileExt = file.name.split('.').pop()
         const filePath = `task_files/${session.user.id}/${taskId}/${Math.random()}.${fileExt}`
 
+        window.console.error(`Uploading file ${i + 1}/${selectedFiles.length}`);
         const { error: uploadError } = await supabase.storage
           .from(bucketName)
           .upload(filePath, file)
@@ -67,12 +71,15 @@ export function TaskFileUpload({
         })
       }
 
-      onUpload(uploadedFiles, taskId, supabase)
+      window.console.error('Files uploaded to storage, calling onUpload with:', { uploadedFiles, taskId });
+      await onUpload(uploadedFiles, taskId, supabase)
+      window.console.error('onUpload completed');
+      
       setSelectedFiles(null)
       const fileInput = document.getElementById(`files-${taskId}`) as HTMLInputElement
       if (fileInput) fileInput.value = ''
     } catch (error) {
-      console.error('Error uploading file:', error)
+      window.console.error('Detailed upload error:', error)
     } finally {
       setUploading(false)
     }
