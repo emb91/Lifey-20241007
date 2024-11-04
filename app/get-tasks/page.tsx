@@ -28,7 +28,6 @@ export default function Home() {
   const handleTaskFileUpload = async (files: FileInfo[], taskId: number, supabaseClient: any) => {
     try {
       window.console.error('1. Starting file upload, files:', files);
-      setIsUploading(true);
 
       if (!files || files.length === 0) {
         throw new Error('No files provided');
@@ -252,6 +251,7 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
                 bucketName="user-documents"
                 taskId={task.id}
                 onUpload={(files, taskId) => {
+                  setIsUploading(true);
                   console.error('TaskFileUpload onUpload called with:', { files, taskId });
                   return handleTaskFileUpload(files, taskId, supabase);
                 }}

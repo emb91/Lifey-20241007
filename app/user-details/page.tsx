@@ -86,7 +86,6 @@ export default function UserDetailsPage() {
 
   const handleUpload = async (files: FileInfo[]) => {
     try {
-      setIsUploading(true);
       // Insert file references into the database
       const { error } = await supabase
         .from('additionalFiles')
@@ -190,7 +189,10 @@ export default function UserDetailsPage() {
         <CardContent>
           <FileUpload
             bucketName="user-documents"
-            onUpload={handleUpload}
+            onUpload={(files) => {
+              setIsUploading(true);  // Set loading state when upload starts
+              return handleUpload(files);
+            }}
           />
           <AdditionalFileDisplay 
             userId={user?.id}

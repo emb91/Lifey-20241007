@@ -16,6 +16,7 @@ interface FileDisplayProps {
   userId?: string;
   taskId?: number;
   supabase: any;
+  tableName: string;
   onDelete?: () => void;
 }
 
@@ -54,7 +55,11 @@ export function FileDisplay({ fileIds, userId, taskId, supabase, tableName, onDe
 
   useEffect(() => {
     async function loadFiles() {
-      let query = supabase.from(tableName).select('*');
+      let query = supabase
+        .from(tableName)
+        .select('*')
+        .order('created_at', { ascending: false });
+
       
       if (fileIds?.length) {
         query = query.in('id', fileIds);

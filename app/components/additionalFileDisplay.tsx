@@ -53,7 +53,10 @@ export function AdditionalFileDisplay({ userId, supabase, tableName, onDelete }:
 
   useEffect(() => {
     async function loadFiles() {
-      let query = supabase.from(tableName).select('*')
+      let query = supabase
+        .from(tableName)
+        .select('*')
+        .order('created_at', { ascending: false })
         .eq('user_id', userId);
 
       const { data, error } = await query;
