@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { TaskFileUpload, FileInfo } from '@/app/components/taskFileUpload'
 import { FileDisplay } from '@/app/components/FileDisplay';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import { DeleteConfirmationPopup } from '@/app/components/popups/DeleteConfirmationPopup';
 
 
 export default function Home() {
@@ -23,6 +24,11 @@ export default function Home() {
   const { session } = useSession();
   const supabase = createClerkSupabaseClient(session);
   const [isUploading, setIsUploading] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    taskId: number | null;
+    taskName: string;
+  }>({ isOpen: false, taskId: null, taskName: '' });
 
 
   const handleTaskFileUpload = async (files: FileInfo[], taskId: number, supabaseClient: any) => {
@@ -124,17 +130,61 @@ export default function Home() {
 
   // Delete a task
   async function deleteTask(taskId: number) {
-    console.log("Deleting taskId:", taskId);
-    const { data, error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
+    try {
+      console.log("Deleting taskId:", taskId);
+      
+      // First get the task's files
+      const { data: taskData, error: taskError } = await supabase
+        .from('tasks')
+        .select('taskFiles_ID')
+        .eq('id', taskId)
+        .single();
 
-    if (!error) {
+      if (taskError) throw taskError;
+
+      // If there are associated files
+      if (taskData?.taskFiles_ID?.length > 0) {
+        // Get file paths from taskFiles table
+        const { data: filesData, error: filesError } = await supabase
+          .from('taskFiles')
+          .select('file_path')
+          .in('id', taskData.taskFiles_ID);
+
+        if (filesError) throw filesError;
+
+        // Delete files from storage bucket
+        if (filesData?.length > 0) {
+          const filePaths = filesData.map(file => file.file_path);
+          const { error: storageError } = await supabase
+            .storage
+            .from('user-documents')
+            .remove(filePaths);
+
+          if (storageError) throw storageError;
+        }
+
+        // Delete records from taskFiles table
+        const { error: deleteFilesError } = await supabase
+          .from('taskFiles')
+          .delete()
+          .in('id', taskData.taskFiles_ID);
+
+        if (deleteFilesError) throw deleteFilesError;
+      }
+
+      // Finally delete the task
+      const { error: deleteTaskError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (deleteTaskError) throw deleteTaskError;
+
       // Update the tasks state to remove the deleted task
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    } else {
-      console.log("error:", error);
+
+    } catch (error) {
+      console.error("Error deleting task and associated files:", error);
     }
   }
 
@@ -240,7 +290,11 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
             </Button>
             <Button  
               onClick={() => {
-                deleteTask(task.id);
+                setDeleteConfirmation({ 
+                  isOpen: true, 
+                  taskId: task.id,
+                  taskName: task.task_name 
+                });
               }}
             >
               Delete task
@@ -270,6 +324,19 @@ async function editTask(taskId: number, taskName: string, taskDescription: strin
       )}
 
       {!loading && tasks.length === 0 && <p>No tasks found</p>}
+
+      <DeleteConfirmationPopup
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, taskId: null, taskName: '' })}
+        onConfirm={() => {
+          if (deleteConfirmation.taskId) {
+            deleteTask(deleteConfirmation.taskId);
+            setDeleteConfirmation({ isOpen: false, taskId: null, taskName: '' });
+          }
+        }}
+        itemName={deleteConfirmation.taskName}
+        itemType="task"
+      />
 
     </div>
   )

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from './ui/Button';
+import { DeleteConfirmationPopup } from './popups/DeleteConfirmationPopup';
 
 interface File {
   id: number;
@@ -23,6 +24,10 @@ interface FileDisplayProps {
 export function FileDisplay({ fileIds, userId, taskId, supabase, tableName, onDelete }: FileDisplayProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    file: File | null;
+  }>({ isOpen: false, file: null });
 
   const handleDeleteFile = async (file: File) => {
     try {
@@ -125,7 +130,10 @@ export function FileDisplay({ fileIds, userId, taskId, supabase, tableName, onDe
               </span>
             </a>
             <Button
-              onClick={() => handleDeleteFile(file)}
+              onClick={() => setDeleteConfirmation({ 
+                isOpen: true, 
+                file: file 
+              })}
               className="absolute -bottom-1 -right-1 bg-red-500 hover:bg-red-600 text-white p-1 h-6 min-h-0 text-xs rounded"
               title="Delete file"
             >
@@ -134,6 +142,18 @@ export function FileDisplay({ fileIds, userId, taskId, supabase, tableName, onDe
           </div>
         ))}
       </div>
+      <DeleteConfirmationPopup
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, file: null })}
+        onConfirm={() => {
+          if (deleteConfirmation.file) {
+            handleDeleteFile(deleteConfirmation.file);
+            setDeleteConfirmation({ isOpen: false, file: null });
+          }
+        }}
+        itemName={deleteConfirmation.file?.file_name || ''}
+        itemType={deleteConfirmation.file?.file_type.startsWith('image/') ? 'image' : 'file'}
+      />
     </div>
   );
 }

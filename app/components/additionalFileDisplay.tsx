@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from './ui/Button';
+import { DeleteConfirmationPopup } from './DeleteConfirmationPopup';
 
 interface File {
   id: number;
@@ -21,8 +22,19 @@ interface AdditionalDisplayProps {
 export function AdditionalFileDisplay({ userId, supabase, tableName, onDelete }: AdditionalDisplayProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    file: File | null;
+  }>({ isOpen: false, file: null });
 
   const handleDeleteFile = async (file: File) => {
+    setDeleteConfirmation({ isOpen: true, file });
+  };
+
+  const handleConfirmDelete = async () => {
+    const file = deleteConfirmation.file;
+    if (!file) return;
+
     try {
       // Delete from storage bucket
       const { error: storageError } = await supabase
@@ -48,6 +60,9 @@ export function AdditionalFileDisplay({ userId, supabase, tableName, onDelete }:
 
     } catch (error) {
       console.error('Error deleting file:', error);
+      alert(`Failed to delete ${file.file_name}. Please try again.`);
+    } finally {
+      setDeleteConfirmation({ isOpen: false, file: null });
     }
   };
 
@@ -127,6 +142,14 @@ export function AdditionalFileDisplay({ userId, supabase, tableName, onDelete }:
           <div className="text-gray-500">No files uploaded yet</div>
         )}
       </div>
+      
+      <DeleteConfirmationPopup
+        isOpen={deleteConfirmation.isOpen}
+        onClose={() => setDeleteConfirmation({ isOpen: false, file: null })}
+        onConfirm={handleConfirmDelete}
+        fileName={deleteConfirmation.file?.file_name || ''}
+        fileType={deleteConfirmation.file?.file_type.startsWith('image/') ? 'image' : 'document'}
+      />
     </div>
   );
 }
