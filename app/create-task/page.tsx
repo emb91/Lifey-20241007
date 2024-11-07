@@ -127,7 +127,7 @@ useEffect(() => {
           console.log("THE PAGE RUN ID IS:", runIdRef.current);
           console.log("THE PAGE THREADID IS:", threadId);
           
-          const response = await axios.post('/api/submitToolOutputs', {
+          const response = await axios.post(`/api/assistants/threads/${threadId}/actions`, {
             threadId: threadId,
             runId: runIdRef.current,
             assistantId: process.env.NEXT_PUBLIC_ASSISTANT_ID,

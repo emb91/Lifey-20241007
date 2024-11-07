@@ -6,7 +6,6 @@ import { AssistantStream } from "openai/lib/AssistantStream";
 import Markdown from "react-markdown";
 import { AssistantStreamEvent } from "openai/resources/beta/assistants";
 import { RequiredActionFunctionToolCall } from "openai/resources/beta/threads/runs/runs";
-import TaskSuccessPopup from "./TaskSuccessPopup";
 import RegenerateButton from './RegenerateButton';
 import LoadingSpinner from './LoadingSpinner';
 import { Button } from './ui/Button';
@@ -90,8 +89,8 @@ const Chat = ({
   const [inputDisabled, setInputDisabled] = useState(true);
   // const [threadId, setThreadId] = useState("");
   const [error, setError] = useState("");
-  const [isTaskCompleted, setIsTaskCompleted] = useState(false);
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  // const [isTaskCompleted, setIsTaskCompleted] = useState(false);
+  // const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
@@ -185,7 +184,7 @@ const Chat = ({
       console.log(`[Action Response] Status: ${response.status}`);
 
       if (response.status === 200) {
-        setIsPopupOpen(true);
+        // setIsPopupOpen(true);
       }
 
       if (!response.ok) {
@@ -431,9 +430,9 @@ const Chat = ({
         </div>
       }
       
-      {isCreatingTask && (
+      {/* {isCreatingTask && (
         <LoadingSpinner message="Lifey is creating the task for you now..." />
-      )}
+      )} */}
 
       <form
         onSubmit={handleSubmit}
@@ -462,10 +461,10 @@ const Chat = ({
           />
         </div>
       </form>
-      <TaskSuccessPopup
+      {/* <TaskSuccessPopup
         isOpen={isPopupOpen}
         onClose={closePopup}
-      />
+      /> */}
     </div>
   );
 };

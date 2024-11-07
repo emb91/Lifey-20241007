@@ -9,6 +9,7 @@ const ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
 export async function GET() {
   try {
     const assistant = await openai.beta.assistants.retrieve(ASSISTANT_ID);
+    console.log('Assistant Model:', assistant.model);
     return Response.json({ 
       id: assistant.id,
       name: assistant.name,
