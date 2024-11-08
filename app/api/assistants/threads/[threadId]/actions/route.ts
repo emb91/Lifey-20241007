@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 import { GET as searchHandler } from '@/app/api/search/route';
+import { determineSearchEngine } from '@/app/utils/searchUtils';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -55,55 +56,126 @@ export async function POST(
           case 'search_google_api':
             try {
               const searchParams = JSON.parse(toolCall.function.arguments);
+              const { engine, params } = determineSearchEngine(searchParams.query);
+              
               const searchUrl = new URL('http://localhost:3000/api/search');
               searchUrl.searchParams.set('query', searchParams.query);
-              if (searchParams.results_per_page) {
-                searchUrl.searchParams.set('results_per_page', searchParams.results_per_page);
-              }
+              searchUrl.searchParams.set('engine', engine);
+              
+              // Add engine-specific parameters
+              Object.entries(params).forEach(([key, value]) => {
+                searchUrl.searchParams.set(key, String(value));
+              });
+              
               console.log('Making search request to:', searchUrl.toString());
               
-              const searchResponse = await searchHandler(new Request(
-                `http://localhost:3000/api/search?query=${encodeURIComponent(searchParams.query)}&results_per_page=${searchParams.results_per_page}`
-              ));
+              const searchResponse = await searchHandler(new Request(searchUrl));
               
               if (!searchResponse.ok) {
                 const errorText = await searchResponse.text();
                 console.error('Search API error:', errorText);
-                throw new Error(`Search failed with status: ${searchResponse.status}`);
-              }
-              
-              const contentType = searchResponse.headers.get('content-type');
-              if (!contentType || !contentType.includes('application/json')) {
-                const text = await searchResponse.text();
-                console.error('Invalid content type:', contentType, 'Response:', text);
-                throw new Error('Search API returned non-JSON response');
+                throw new Error(`Search failed: ${errorText}`);
               }
               
               const searchData = await searchResponse.json();
+              console.log('Search data received:', searchData);
+              
               if (!searchData || searchData.error) {
                 throw new Error(searchData?.error || 'Invalid search response');
               }
               
-              console.log('Search data received:', searchData);
+              // Format the response based on the engine type
+              let formattedItems;
+              switch (engine) {
+                case 'google_local':
+                  formattedItems = searchData.places?.map(place => ({
+                    title: place.title,
+                    link: place.place_id_search || place.link,
+                    address: place.address,
+                    rating: place.rating,
+                    reviews: place.reviews,
+                    phone: place.phone,
+                    type: place.type,
+                    hours: place.hours,
+                    website: place.website
+                  }));
+                  break;
+
+                case 'google_hotels':
+                  formattedItems = searchData.hotels?.map(hotel => ({
+                    title: hotel.name,
+                    link: hotel.link,
+                    price: hotel.price,
+                    rating: hotel.rating,
+                    reviews: hotel.reviews,
+                    location: hotel.location,
+                    thumbnail: hotel.thumbnail,
+                    description: hotel.description
+                  }));
+                  break;
+
+                case 'google_images':
+                  formattedItems = searchData.images?.map(image => ({
+                    title: image.title,
+                    link: image.link,
+                    thumbnail: image.thumbnail,
+                    original: image.original,
+                    source: image.source,
+                    source_name: image.source_name
+                  }));
+                  break;
+
+                case 'google_events':
+                  formattedItems = searchData.events?.map(event => ({
+                    title: event.title,
+                    link: event.link,
+                    date: event.date,
+                    venue: event.venue,
+                    address: event.address,
+                    description: event.description,
+                    ticket_info: event.ticket_info
+                  }));
+                  break;
+
+                case 'google_food':
+                  formattedItems = searchData.restaurants?.map(restaurant => ({
+                    title: restaurant.title,
+                    link: restaurant.link,
+                    rating: restaurant.rating,
+                    reviews: restaurant.reviews,
+                    price_range: restaurant.price_range,
+                    cuisine: restaurant.cuisine,
+                    address: restaurant.address,
+                    hours: restaurant.hours
+                  }));
+                  break;
+
+                default:
+                  formattedItems = searchData.organic?.map(result => ({
+                    title: result.title,
+                    link: result.link,
+                    snippet: result.snippet,
+                    position: result.position
+                  }));
+              }
               
               output = JSON.stringify({
-                items: searchData.items.map(item => ({
-                  title: item.title,
-                  link: item.link,
-                  snippet: item.snippet
-                })),
-                searchInformation: {
-                  searchTime: searchData.searchInformation?.searchTime,
-                  totalResults: searchData.searchInformation?.totalResults
-                }
+                engine,
+                items: formattedItems || [],
+                searchMetadata: searchData.searchMetadata || {}
               });
             } catch (error) {
               console.error('Search error:', error);
-              output = { 
-                error: error.message,
+              output = JSON.stringify({ 
+                error: error.message || 'An unknown error occurred',
                 status: 'error',
-                timestamp: new Date().toISOString()
-              };
+                timestamp: new Date().toISOString(),
+                details: {
+                  url: searchUrl?.toString(),
+                  engine: engine,
+                  query: searchParams?.query
+                }
+              });
             }
             break;
 
@@ -128,14 +200,12 @@ export async function POST(
         });
       }
 
-      // Submit all tool outputs
       const updatedRun = await openai.beta.threads.runs.submitToolOutputs(
         threadId,
         runId,
         { tool_outputs: toolOutputs }
       );
 
-      // Wait for completion
       const completedRun = await waitForRunCompletion(threadId, updatedRun.id);
       return NextResponse.json(completedRun);
     }
@@ -146,81 +216,5 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
-// //old code no search function
-
-// import { NextResponse } from 'next/server';
-// import OpenAI from 'openai';
-
-// const openai = new OpenAI();
-
-// export async function POST(
-//   request: Request,
-//   { params }: { params: { threadId: string } }
-// ) {
-//   try {
-//     const { runId, toolCallOutputs } = await request.json();
-//     const threadId = params.threadId;
-
-//     console.log(`Received request for Thread ID: ${threadId}, Run ID: ${runId}`);
-
-//     // Check the run status before submitting tool outputs
-//     let run = await openai.beta.threads.runs.retrieve(threadId, runId);
-//     console.log(`Initial run status: ${run.status}`);
-
-//     if (run.status === 'completed' || run.status === 'failed' || run.status === 'cancelled') {
-//       console.log(`🔄 Run already in final state: ${run.status}. Not submitting tool outputs.`);
-//       return new NextResponse(JSON.stringify(run), {
-//         status: 200,
-//         headers: { 'Content-Type': 'application/json' },
-//       });
-//     }
-
-//     // If the run is still active, submit the tool outputs
-//     console.log('Submitting tool outputs...');
-//     run = await openai.beta.threads.runs.submitToolOutputs(
-//       threadId,
-//       runId,
-//       { tool_outputs: toolCallOutputs }
-//     );
-//     console.log('✅ Tool outputs submitted successfully');
-
-//     // Wait for the run to complete
-//     console.log('Waiting for run to complete...');
-//     let completedRun = await waitForRunCompletion(threadId, run.id);
-//     console.log(`🎉 Run completed with final status: ${completedRun.status}`);
-
-//     // Return the completed run
-//     console.log("🚀 Action processed successfully, sending response to client");
-//     return new NextResponse(JSON.stringify(completedRun), {
-//       status: 200,
-//       headers: { 'Content-Type': 'application/json' },
-//     });
-//   } catch (error) {
-//     console.error('❌ Error in action submission:', error);
-//     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-//     return new NextResponse(JSON.stringify({ error: errorMessage }), {
-//       status: 500,
-//       headers: { 'Content-Type': 'application/json' },
-//     });
-//   }
-// }
-
-// async function waitForRunCompletion(threadId: string, runId: string) {
-//   let run;
-//   let attempts = 0;
-//   do {
-//     attempts++;
-//     run = await openai.beta.threads.runs.retrieve(threadId, runId);
-//     console.log(`Attempt ${attempts}: Run status: ${run.status}`);
-//     if (run.status === 'completed' || run.status === 'failed' || run.status === 'cancelled') {
-//       return run;
-//     }
-//     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before checking again
-//   } while (attempts < 30); // Limit to 30 attempts (30 seconds)
-
-//   console.log('⏱️ Run did not complete within the expected time');
-//   return run;
-// }
 
 
